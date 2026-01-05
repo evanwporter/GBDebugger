@@ -1,7 +1,8 @@
-# GBDebugger Tests
-# This file will be populated with test targets as tests are implemented
+# Data structures test
+add_executable(DataStructuresTest DataStructuresTest.cpp)
+target_link_libraries(DataStructuresTest GBDebugger)
+target_include_directories(DataStructuresTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include
+)
 
-cmake_minimum_required(VERSION 3.9)
-
-# Placeholder for future test executables
-# Tests will be added as implementation progresses
+add_test(NAME DataStructuresTest COMMAND DataStructuresTest)
