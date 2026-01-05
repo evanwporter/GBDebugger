@@ -4,6 +4,7 @@
 #include "panels/CPUStatePanel.h"
 #include "panels/FlagsPanel.h"
 #include "panels/MemoryViewerPanel.h"
+#include "panels/ControlPanel.h"
 
 namespace GBDebug {
 
@@ -12,6 +13,7 @@ GBDebugger::GBDebugger()
     , cpu_panel_(new CPUStatePanel())
     , flags_panel_(new FlagsPanel())
     , memory_panel_(new MemoryViewerPanel())
+    , control_panel_(new ControlPanel())
     , is_open_(false) {
 }
 
@@ -67,6 +69,7 @@ void GBDebugger::Render() {
     cpu_panel_->Render();
     flags_panel_->Render();
     memory_panel_->Render();
+    control_panel_->Render();
 }
 
 void GBDebugger::EndFrame() {
@@ -108,6 +111,30 @@ SDL_Window* GBDebugger::GetWindow() const {
 bool GBDebugger::InitSDL() {
     // Legacy compatibility - just call Open()
     return Open();
+}
+
+bool GBDebugger::IsRunning() const {
+    return control_panel_->IsRunning();
+}
+
+void GBDebugger::SetRunning(bool running) {
+    control_panel_->SetRunning(running);
+}
+
+void GBDebugger::ToggleRunning() {
+    control_panel_->ToggleRunning();
+}
+
+bool GBDebugger::IsStepRequested() const {
+    return control_panel_->IsStepRequested();
+}
+
+void GBDebugger::ClearStepRequest() {
+    control_panel_->ClearStepRequest();
+}
+
+bool GBDebugger::IsExitRequested() const {
+    return control_panel_->IsExitRequested();
 }
 
 } // namespace GBDebug

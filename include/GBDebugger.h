@@ -17,6 +17,7 @@ class DebuggerBackend;
 class CPUStatePanel;
 class FlagsPanel;
 class MemoryViewerPanel;
+class ControlPanel;
 
 /**
  * GBDebugger - Emulator-agnostic GameBoy debugger
@@ -29,6 +30,7 @@ class MemoryViewerPanel;
  * - CPU register values (PC, SP, AF, BC, DE, HL)
  * - CPU flags (Z, N, H, C) with visual indicators
  * - Full 64KB memory viewer with region highlighting
+ * - Control panel with Run/Stop, Step, and Exit buttons
  * 
  * Architecture:
  * - GBDebugger (this class): Public API, coordinates panels and backend
@@ -40,17 +42,16 @@ class MemoryViewerPanel;
  *   debugger.Open();
  *   
  *   while (running) {
- *       // Process SDL events
  *       debugger.ProcessSDLEvent(&event);
- *       
- *       // Update state from emulator
  *       debugger.UpdateCPU(cycle, pc, sp, af, bc, de, hl, ime);
  *       debugger.UpdateMemory(memoryBuffer, 65536);
- *       
- *       // Render frame
  *       debugger.BeginFrame();
  *       debugger.Render();
  *       debugger.EndFrame();
+ *       
+ *       if (debugger.IsRunning()) { ... }
+ *       if (debugger.IsStepRequested()) { ... }
+ *       if (debugger.IsExitRequested()) { break; }
  *   }
  *   
  *   debugger.Close();
@@ -137,6 +138,38 @@ public:
      */
     SDL_Window* GetWindow() const;
     
+    // ========== Control State ==========
+    
+    /**
+     * Check if emulator should be running
+     */
+    bool IsRunning() const;
+    
+    /**
+     * Set running state
+     */
+    void SetRunning(bool running);
+    
+    /**
+     * Toggle running state
+     */
+    void ToggleRunning();
+    
+    /**
+     * Check if a single step was requested
+     */
+    bool IsStepRequested() const;
+    
+    /**
+     * Clear the step request flag
+     */
+    void ClearStepRequest();
+    
+    /**
+     * Check if exit was requested
+     */
+    bool IsExitRequested() const;
+    
     // ========== Legacy Compatibility ==========
     
     /**
@@ -150,6 +183,7 @@ private:
     std::unique_ptr<CPUStatePanel> cpu_panel_;
     std::unique_ptr<FlagsPanel> flags_panel_;
     std::unique_ptr<MemoryViewerPanel> memory_panel_;
+    std::unique_ptr<ControlPanel> control_panel_;
     bool is_open_;
     
     // Disable copy

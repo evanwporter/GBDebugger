@@ -38,6 +38,7 @@ set(GBDEBUGGER_SOURCES
     src/panels/CPUStatePanel.cpp
     src/panels/FlagsPanel.cpp
     src/panels/MemoryViewerPanel.cpp
+    src/panels/ControlPanel.cpp
 )
 
 # GBDebugger library
