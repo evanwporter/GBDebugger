@@ -180,6 +180,11 @@ private:
     MemoryState memory_state_;
     bool is_open_;
     
+    // Rendering helper methods
+    void RenderCPUStatePanel();
+    void RenderFlagsPanel();
+    void RenderMemoryViewer();
+    
     // Disable copy and assignment
     GBDebugger(const GBDebugger&) = delete;
     GBDebugger& operator=(const GBDebugger&) = delete;
