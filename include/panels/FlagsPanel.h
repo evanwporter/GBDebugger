@@ -8,6 +8,14 @@ namespace GBDebug {
 
 /**
  * FlagsPanel - Displays CPU flag states with visual indicators
+ * 
+ * Renders an ImGui panel showing the state of the four CPU flags
+ * (Zero, Subtract, Half-Carry, Carry) with color-coded SET/CLEAR
+ * indicators for quick visual inspection during debugging.
+ * 
+ * Usage:
+ *   1. Call Update() with current CPUState after each emulator step
+ *   2. Call Render() each frame to draw the panel
  */
 class FlagsPanel : public IDebuggerPanel {
 public:

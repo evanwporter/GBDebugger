@@ -4,11 +4,19 @@
 namespace GBDebug {
 
 /**
- * Interface for debugger panels
+ * IDebuggerPanel - Abstract interface for all debugger UI panels
  * 
- * Each panel is a self-contained UI component that can render itself
- * using ImGui. Panels receive data through their specific update methods
- * and render that data when Render() is called.
+ * Defines the contract that all debugger panels must implement. Each panel
+ * is a self-contained UI component responsible for rendering a specific
+ * aspect of the emulator state (CPU registers, flags, memory, etc.).
+ * 
+ * Panels receive data through their specific Update() methods and render
+ * that data when Render() is called during the frame loop.
+ * 
+ * Usage:
+ *   1. Implement this interface for each distinct debugger view
+ *   2. Call Update() methods to provide new state data
+ *   3. Call Render() each frame to draw the panel
  */
 class IDebuggerPanel {
 public:

@@ -8,6 +8,15 @@ namespace GBDebug {
 
 /**
  * MemoryViewerPanel - Displays the full 64KB memory space with region highlighting
+ * 
+ * Renders a scrollable hex dump of the entire GameBoy memory map with:
+ * - Color-coded memory regions (ROM, VRAM, RAM, I/O, etc.)
+ * - Hexadecimal and ASCII representation side by side
+ * - Region headers showing address ranges
+ * 
+ * Usage:
+ *   1. Call Update() with a 64KB memory buffer after each emulator step
+ *   2. Call Render() each frame to draw the panel
  */
 class MemoryViewerPanel : public IDebuggerPanel {
 public:

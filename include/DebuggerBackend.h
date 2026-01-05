@@ -11,8 +11,16 @@ namespace GBDebug {
 /**
  * DebuggerBackend - Handles SDL2/OpenGL initialization and ImGui frame management
  * 
- * This class encapsulates all the low-level rendering setup, separating it
- * from the debugger's API and panel logic.
+ * This class encapsulates all low-level rendering setup, providing a clean
+ * separation between the debugger's public API and the underlying graphics
+ * infrastructure. It manages:
+ * - SDL2 window creation and destruction
+ * - OpenGL context setup
+ * - ImGui backend initialization (SDL2 + OpenGL3)
+ * - Frame lifecycle (begin/end frame, buffer swapping)
+ * 
+ * This is an internal implementation class - users should interact with
+ * GBDebugger instead.
  */
 class DebuggerBackend {
 public:

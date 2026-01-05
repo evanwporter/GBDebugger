@@ -7,7 +7,14 @@
 namespace GBDebug {
 
 /**
- * CPU state structure containing all register values and flags
+ * CPUState - Snapshot of GameBoy CPU register values
+ * 
+ * Contains all CPU register values and flags at a point in time.
+ * Used to transfer state from the emulator to the debugger without
+ * creating dependencies on emulator-specific types.
+ * 
+ * Provides accessor methods for individual registers and flag bits
+ * extracted from the combined register pairs.
  */
 struct CPUState {
     uint64_t cycle;  // Current CPU cycle count
@@ -39,7 +46,11 @@ struct CPUState {
 };
 
 /**
- * Memory state structure containing the full 64KB GameBoy address space
+ * MemoryState - Snapshot of the full 64KB GameBoy address space
+ * 
+ * Holds a copy of the entire memory map for display in the debugger.
+ * The buffer is copied from the emulator to avoid direct memory access
+ * and maintain separation between debugger and emulator.
  */
 struct MemoryState {
     std::array<uint8_t, 65536> buffer;
@@ -55,7 +66,10 @@ struct MemoryState {
 };
 
 /**
- * Color structure for memory region visualization
+ * Color - RGBA color for UI rendering
+ * 
+ * Simple color structure compatible with ImGui's ImVec4 but defined
+ * independently to avoid ImGui dependency in public headers.
  */
 struct Color {
     float r, g, b, a;
@@ -64,7 +78,10 @@ struct Color {
 };
 
 /**
- * Memory region structure defining GameBoy memory map segments
+ * MemoryRegion - Defines a segment of the GameBoy memory map
+ * 
+ * Used by the memory viewer to display region boundaries and apply
+ * color coding to different memory areas (ROM, RAM, I/O, etc.).
  */
 struct MemoryRegion {
     const char* name;

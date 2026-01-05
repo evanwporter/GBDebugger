@@ -21,18 +21,39 @@ class MemoryViewerPanel;
 /**
  * GBDebugger - Emulator-agnostic GameBoy debugger
  * 
- * This is the main API class for the debugger. It provides a clean interface
- * for updating emulator state and rendering the debugger UI, while hiding
- * all ImGui and rendering details internally.
+ * This is the main public API for the debugger library. It provides a clean,
+ * high-level interface for integrating debugging capabilities into any GameBoy
+ * emulator. All ImGui and rendering details are hidden internally.
+ * 
+ * The debugger displays:
+ * - CPU register values (PC, SP, AF, BC, DE, HL)
+ * - CPU flags (Z, N, H, C) with visual indicators
+ * - Full 64KB memory viewer with region highlighting
+ * 
+ * Architecture:
+ * - GBDebugger (this class): Public API, coordinates panels and backend
+ * - DebuggerBackend: SDL2/OpenGL window and ImGui frame management
+ * - Panel classes: Individual UI components (CPUStatePanel, FlagsPanel, etc.)
  * 
  * Usage:
- *   1. Create a GBDebugger instance
- *   2. Call Open() to initialize the debugger window
- *   3. In your main loop:
- *      - Call ProcessEvent() for each SDL event
- *      - Call UpdateCPU() and UpdateMemory() with current state
- *      - Call BeginFrame(), Render(), EndFrame() to draw
- *   4. Call Close() when done
+ *   GBDebugger debugger;
+ *   debugger.Open();
+ *   
+ *   while (running) {
+ *       // Process SDL events
+ *       debugger.ProcessSDLEvent(&event);
+ *       
+ *       // Update state from emulator
+ *       debugger.UpdateCPU(cycle, pc, sp, af, bc, de, hl, ime);
+ *       debugger.UpdateMemory(memoryBuffer, 65536);
+ *       
+ *       // Render frame
+ *       debugger.BeginFrame();
+ *       debugger.Render();
+ *       debugger.EndFrame();
+ *   }
+ *   
+ *   debugger.Close();
  */
 class GBDebugger {
 public:

@@ -8,6 +8,14 @@ namespace GBDebug {
 
 /**
  * CPUStatePanel - Displays CPU register values and cycle count
+ * 
+ * Renders an ImGui panel showing the current state of all CPU registers
+ * (PC, SP, AF, BC, DE, HL), the cycle count, and IME flag. Values are
+ * displayed in hexadecimal format for easy debugging.
+ * 
+ * Usage:
+ *   1. Call Update() with current CPUState after each emulator step
+ *   2. Call Render() each frame to draw the panel
  */
 class CPUStatePanel : public IDebuggerPanel {
 public:
