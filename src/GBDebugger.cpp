@@ -2,11 +2,24 @@
 #include <cstring>
 #include <cstdio>
 #include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
+
+#include <SDL.h>
+#if defined(__APPLE__)
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 namespace GBDebug {
 
 GBDebugger::GBDebugger() 
-    : is_open_(false) {
+    : is_open_(false)
+    , sdl_window_(nullptr)
+    , gl_context_(nullptr)
+    , sdl_initialized_(false)
+    , should_close_(false) {
     // Initialize CPU state to zero
     cpu_state_.cycle = 0;
     cpu_state_.pc = 0;
@@ -55,14 +68,150 @@ void GBDebugger::Close() {
         return;
     }
     
+    // Cleanup SDL/OpenGL backend if initialized
+    if (sdl_initialized_) {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        
+        if (gl_context_) {
+            SDL_GL_DeleteContext(gl_context_);
+            gl_context_ = nullptr;
+        }
+        
+        if (sdl_window_) {
+            SDL_DestroyWindow(sdl_window_);
+            sdl_window_ = nullptr;
+        }
+        
+        sdl_initialized_ = false;
+    }
+    
     // Destroy ImGui context
     ImGui::DestroyContext();
     
     is_open_ = false;
+    should_close_ = false;
 }
 
 bool GBDebugger::IsOpen() const {
     return is_open_;
+}
+
+bool GBDebugger::InitSDL() {
+    // Must call Open() first to create ImGui context
+    if (!is_open_) {
+        if (!Open()) {
+            return false;
+        }
+    }
+    
+    // Already initialized
+    if (sdl_initialized_) {
+        return true;
+    }
+    
+    // Set OpenGL attributes for ImGui
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    
+    // Create debugger window
+    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+    sdl_window_ = SDL_CreateWindow(
+        "GBDebugger",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        800,
+        600,
+        window_flags
+    );
+    
+    if (!sdl_window_) {
+        return false;
+    }
+    
+    // Create OpenGL context
+    gl_context_ = SDL_GL_CreateContext(sdl_window_);
+    if (!gl_context_) {
+        SDL_DestroyWindow(sdl_window_);
+        sdl_window_ = nullptr;
+        return false;
+    }
+    
+    SDL_GL_MakeCurrent(sdl_window_, gl_context_);
+    SDL_GL_SetSwapInterval(1); // Enable vsync
+    
+    // Initialize ImGui SDL2 and OpenGL3 backends
+    ImGui_ImplSDL2_InitForOpenGL(sdl_window_, gl_context_);
+    ImGui_ImplOpenGL3_Init("#version 150");
+    
+    sdl_initialized_ = true;
+    should_close_ = false;
+    
+    return true;
+}
+
+void GBDebugger::ProcessSDLEvent(SDL_Event* event) {
+    if (!sdl_initialized_ || !event) {
+        return;
+    }
+    
+    // Check for window close event
+    if (event->type == SDL_WINDOWEVENT && 
+        event->window.event == SDL_WINDOWEVENT_CLOSE &&
+        sdl_window_ && 
+        event->window.windowID == SDL_GetWindowID(sdl_window_)) {
+        should_close_ = true;
+    }
+    
+    // Forward event to ImGui
+    ImGui_ImplSDL2_ProcessEvent(event);
+}
+
+void GBDebugger::BeginFrame() {
+    if (!sdl_initialized_) {
+        return;
+    }
+    
+    // Start new ImGui frame with SDL/OpenGL backends
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+}
+
+void GBDebugger::EndFrame() {
+    if (!sdl_initialized_) {
+        return;
+    }
+    
+    // Render ImGui
+    ImGui::Render();
+    
+    // Get window size for viewport
+    ImGuiIO& io = ImGui::GetIO();
+    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+    
+    // Clear screen with dark gray background
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    // Render ImGui draw data
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    
+    // Swap buffers
+    SDL_GL_SwapWindow(sdl_window_);
+}
+
+SDL_Window* GBDebugger::GetWindow() const {
+    return sdl_window_;
+}
+
+bool GBDebugger::ShouldClose() const {
+    return should_close_;
 }
 
 void GBDebugger::UpdateCPU(uint64_t cycle, 
@@ -109,16 +258,26 @@ void GBDebugger::Render() {
         return;
     }
     
-    // Start new ImGui frame
-    ImGui::NewFrame();
-    
-    // Render all panels
-    RenderCPUStatePanel();
-    RenderFlagsPanel();
-    RenderMemoryViewer();
-    
-    // Finalize ImGui frame
-    ImGui::Render();
+    // If SDL backend is initialized, use BeginFrame/EndFrame pattern
+    // Otherwise, use headless rendering for testing
+    if (sdl_initialized_) {
+        // SDL backend: caller should use BeginFrame(), Render(), EndFrame() pattern
+        // Just render the panels here
+        RenderCPUStatePanel();
+        RenderFlagsPanel();
+        RenderMemoryViewer();
+    } else {
+        // Headless mode: handle full frame lifecycle
+        ImGui::NewFrame();
+        
+        // Render all panels
+        RenderCPUStatePanel();
+        RenderFlagsPanel();
+        RenderMemoryViewer();
+        
+        // Finalize ImGui frame
+        ImGui::Render();
+    }
 }
 
 void GBDebugger::RenderCPUStatePanel() {

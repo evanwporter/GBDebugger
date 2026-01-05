@@ -5,6 +5,9 @@ project(GBDebugger VERSION 0.0.1 DESCRIPTION "Emulator-agnostic GameBoy debugger
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+
 # Fetch ImGui
 include(FetchContent)
 FetchContent_Declare(
@@ -24,6 +27,8 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui_draw.cpp
     ${IMGUI_DIR}/imgui_tables.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
 # GBDebugger library
@@ -38,11 +43,42 @@ target_include_directories(GBDebugger PUBLIC
 
 target_include_directories(GBDebugger PRIVATE
     ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
 )
+
+# SDL2 include directories - support both standalone and parent project builds
+if(TARGET SDL2)
+    # SDL2 is built as part of parent project
+    get_target_property(SDL2_INCLUDE_DIRS SDL2 INTERFACE_INCLUDE_DIRECTORIES)
+    if(SDL2_INCLUDE_DIRS)
+        target_include_directories(GBDebugger PRIVATE ${SDL2_INCLUDE_DIRS})
+    endif()
+    # Also add the SDL2 source include directory directly
+    target_include_directories(GBDebugger PRIVATE ${CMAKE_SOURCE_DIR}/dep/SDL2/include)
+else()
+    # Standalone build - try to find SDL2
+    find_package(SDL2 REQUIRED)
+    target_include_directories(GBDebugger PRIVATE ${SDL2_INCLUDE_DIRS})
+endif()
+
+# Link against OpenGL
+target_link_libraries(GBDebugger PUBLIC OpenGL::GL)
+
+# Link against SDL2 if available as target
+if(TARGET SDL2)
+    target_link_libraries(GBDebugger PUBLIC SDL2)
+elseif(SDL2_LIBRARIES)
+    target_link_libraries(GBDebugger PUBLIC ${SDL2_LIBRARIES})
+endif()
 
 # Platform-specific settings
 if(WIN32)
     target_compile_definitions(GBDebugger PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
+
+# macOS-specific OpenGL framework
+if(APPLE)
+    target_link_libraries(GBDebugger PUBLIC "-framework OpenGL")
 endif()
 
 # Optional: Build tests
@@ -54,7 +90,7 @@ if(BUILD_GBDEBUGGER_TESTS)
 endif()
 
 # Optional: Build example
-option(BUILD_GBDEBUGGER_EXAMPLE "Build GBDebugger example" ON)
+option(BUILD_GBDEBUGGER_EXAMPLE "Build GBDebugger example" OFF)
 
 if(BUILD_GBDEBUGGER_EXAMPLE)
     add_executable(GBDebuggerExample

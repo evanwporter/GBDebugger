@@ -5,6 +5,11 @@
 #include <cstddef>
 #include <array>
 
+// Forward declarations for SDL types to avoid including SDL headers in public header
+struct SDL_Window;
+typedef void* SDL_GLContext;
+union SDL_Event;
+
 /**
  * GBDebugger - Emulator-agnostic GameBoy debugger using ImGui
  * 
@@ -134,6 +139,46 @@ public:
      */
     bool IsOpen() const;
     
+    // SDL2/OpenGL backend methods
+    
+    /**
+     * Initialize the SDL2/OpenGL backend for rendering
+     * Creates a separate debugger window with OpenGL context
+     * @return true if successful, false if initialization failed
+     */
+    bool InitSDL();
+    
+    /**
+     * Process an SDL event for ImGui interaction
+     * Should be called for each SDL event in the main event loop
+     * @param event Pointer to the SDL_Event to process
+     */
+    void ProcessSDLEvent(SDL_Event* event);
+    
+    /**
+     * Begin a new ImGui frame for SDL/OpenGL rendering
+     * Must be called before any ImGui rendering calls
+     */
+    void BeginFrame();
+    
+    /**
+     * End the current ImGui frame and render to screen
+     * Must be called after all ImGui rendering calls
+     */
+    void EndFrame();
+    
+    /**
+     * Get the debugger's SDL window
+     * @return Pointer to the SDL_Window, or nullptr if not initialized
+     */
+    SDL_Window* GetWindow() const;
+    
+    /**
+     * Check if the debugger window should close (user clicked X)
+     * @return true if window close was requested
+     */
+    bool ShouldClose() const;
+    
     // State update methods
     
     /**
@@ -179,6 +224,12 @@ private:
     CPUState cpu_state_;
     MemoryState memory_state_;
     bool is_open_;
+    
+    // SDL2/OpenGL backend state
+    SDL_Window* sdl_window_;
+    SDL_GLContext gl_context_;
+    bool sdl_initialized_;
+    bool should_close_;
     
     // Rendering helper methods
     void RenderCPUStatePanel();
