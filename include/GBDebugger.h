@@ -171,14 +171,19 @@ public:
     bool IsExitRequested() const;
     
     /**
-     * Get speed multiplier (1, 2, 4, or 8)
+     * Get speed multiplier (0.125 to 8.0)
      */
-    int GetSpeedMultiplier() const;
+    float GetSpeedMultiplier() const;
     
     /**
-     * Cycle through speed options: 1x -> 2x -> 4x -> 8x -> 1x
+     * Increase speed: 1/8x -> 1/4x -> 1/2x -> 1x -> 2x -> 4x -> 8x
      */
-    void CycleSpeed();
+    void CycleSpeedUp();
+    
+    /**
+     * Decrease speed: 8x -> 4x -> 2x -> 1x -> 1/2x -> 1/4x -> 1/8x
+     */
+    void CycleSpeedDown();
     
     // ========== Legacy Compatibility ==========
     

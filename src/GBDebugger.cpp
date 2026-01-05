@@ -26,7 +26,7 @@ bool GBDebugger::Open() {
         return true;
     }
     
-    if (!backend_->Initialize("GBDebugger", 800, 600)) {
+    if (!backend_->Initialize("GBDebugger", 1200, 800)) {
         return false;
     }
     
@@ -137,12 +137,16 @@ bool GBDebugger::IsExitRequested() const {
     return control_panel_->IsExitRequested();
 }
 
-int GBDebugger::GetSpeedMultiplier() const {
+float GBDebugger::GetSpeedMultiplier() const {
     return control_panel_->GetSpeedMultiplier();
 }
 
-void GBDebugger::CycleSpeed() {
-    control_panel_->CycleSpeed();
+void GBDebugger::CycleSpeedUp() {
+    control_panel_->CycleSpeedUp();
+}
+
+void GBDebugger::CycleSpeedDown() {
+    control_panel_->CycleSpeedDown();
 }
 
 } // namespace GBDebug

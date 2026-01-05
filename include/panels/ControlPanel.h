@@ -38,10 +38,12 @@ public:
     
     bool IsExitRequested() const { return exit_requested_; }
     
-    // Speed control: 0=1x, 1=2x, 2=4x, 3=8x
-    int GetSpeedMultiplier() const;
-    void CycleSpeed(); // Cycles through 1x -> 2x -> 4x -> 8x -> 1x
-    void SetSpeedIndex(int index) { speed_index_ = index % 4; }
+    // Speed control: supports 1/8x, 1/4x, 1/2x, 1x, 2x, 4x, 8x
+    // Returns multiplier as float (e.g., 0.125 for 1/8x, 8.0 for 8x)
+    float GetSpeedMultiplier() const;
+    void CycleSpeedUp();   // T: increases speed
+    void CycleSpeedDown(); // Shift+T: decreases speed
+    void SetSpeedIndex(int index);
     int GetSpeedIndex() const { return speed_index_; }
 
 private:
@@ -49,7 +51,9 @@ private:
     bool running_;
     bool step_requested_;
     bool exit_requested_;
-    int speed_index_; // 0=1x, 1=2x, 2=4x, 3=8x
+    int speed_index_; // 0=1/8x, 1=1/4x, 2=1/2x, 3=1x, 4=2x, 5=4x, 6=8x
+    static constexpr int SPEED_COUNT = 7;
+    static constexpr int SPEED_1X_INDEX = 3;
 };
 
 } // namespace GBDebug

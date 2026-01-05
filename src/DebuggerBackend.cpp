@@ -43,7 +43,7 @@ bool DebuggerBackend::Initialize(const char* title, int width, int height) {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     
-    // Create window
+    // Create window with larger default size for better visibility
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
     window_ = SDL_CreateWindow(
         title,

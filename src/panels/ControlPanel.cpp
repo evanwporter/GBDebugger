@@ -8,16 +8,31 @@ ControlPanel::ControlPanel()
     , running_(false)
     , step_requested_(false)
     , exit_requested_(false)
-    , speed_index_(0) {
+    , speed_index_(SPEED_1X_INDEX) {  // Start at 1x
 }
 
-int ControlPanel::GetSpeedMultiplier() const {
-    static const int multipliers[] = {1, 2, 4, 8};
+float ControlPanel::GetSpeedMultiplier() const {
+    // Index: 0=1/8x, 1=1/4x, 2=1/2x, 3=1x, 4=2x, 5=4x, 6=8x
+    static const float multipliers[] = {0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
     return multipliers[speed_index_];
 }
 
-void ControlPanel::CycleSpeed() {
-    speed_index_ = (speed_index_ + 1) % 4;
+void ControlPanel::CycleSpeedUp() {
+    if (speed_index_ < SPEED_COUNT - 1) {
+        speed_index_++;
+    }
+}
+
+void ControlPanel::CycleSpeedDown() {
+    if (speed_index_ > 0) {
+        speed_index_--;
+    }
+}
+
+void ControlPanel::SetSpeedIndex(int index) {
+    if (index >= 0 && index < SPEED_COUNT) {
+        speed_index_ = index;
+    }
 }
 
 void ControlPanel::Render() {
@@ -53,11 +68,11 @@ void ControlPanel::Render() {
         ImGui::EndDisabled();
     }
     
-    // Speed dropdown
-    static const char* speed_labels[] = {"1x", "2x", "4x", "8x"};
+    // Speed dropdown with fractional and multiplied speeds
+    static const char* speed_labels[] = {"1/8x", "1/4x", "1/2x", "1x", "2x", "4x", "8x"};
     ImGui::SetNextItemWidth(130);
-    if (ImGui::BeginCombo("Speed (T)", speed_labels[speed_index_])) {
-        for (int i = 0; i < 4; i++) {
+    if (ImGui::BeginCombo("Speed", speed_labels[speed_index_])) {
+        for (int i = 0; i < SPEED_COUNT; i++) {
             bool is_selected = (speed_index_ == i);
             if (ImGui::Selectable(speed_labels[i], is_selected)) {
                 speed_index_ = i;
@@ -68,6 +83,8 @@ void ControlPanel::Render() {
         }
         ImGui::EndCombo();
     }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(T/Shift+T)");
     
     // Exit button
     if (ImGui::Button("Exit (ESC)", ImVec2(180, 0))) {
